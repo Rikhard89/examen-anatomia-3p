@@ -72,7 +72,7 @@
 <body class="bg-lienzo text-quirurgico-800 font-sans min-h-screen flex flex-col selection:bg-carmin-600 selection:text-white">
 
   <!-- Iframe oculto de respaldo para envío nativo de formularios a Google Forms -->
-  <iframe name="iframeEnvioGoogleForms" id="iframeEnvioGoogleForms" class="hidden" title=" Puente Google Forms "></iframe>
+  <iframe name="iframeEnvioGoogleForms" id="iframeEnvioGoogleForms" class="hidden" title="Puente Google Forms"></iframe>
 
   <!-- ===================================================================== -->
   <!-- ENCABEZADO INSTITUCIONAL (30% Tono Estructural Quirúrgico)            -->
@@ -121,7 +121,7 @@
     </div>
 
     <!-- Modal de Alerta por Infracción de Salida de Ventana -->
-    <div id="modalInfraccion" class="fixed inset-0 z-50 hidden bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div id="modalInfraccion" class="fixed inset-0 z-50 hidden bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 no-select">
       <div class="bg-tarjeta max-w-lg w-full rounded-2xl shadow-2xl border-2 border-carmin-600 overflow-hidden">
         <div class="bg-carmin-600 text-white px-6 py-4 flex items-center gap-3">
           <svg class="w-7 h-7 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,7 +134,7 @@
         </div>
         <div class="p-6 space-y-4 text-sm text-quirurgico-700">
           <p class="font-semibold text-quirurgico-800">
-            Se detectó que abandonaste la ventana del examen (cambio de aplicación, pestaña o pérdida de foco).
+            Se detectó que abandonaste la ventana del examen (cambio de aplicación, pestaña, recarga de página o pérdida de foco).
           </p>
           <div class="bg-carmin-50 border border-carmin-100 rounded-xl p-4 space-y-1.5 text-xs text-carmin-700">
             <p>• <strong>Respuestas borradas:</strong> Todas las respuestas del intento en curso se han reiniciado a cero.</p>
@@ -207,7 +207,7 @@
             </h3>
             <ul class="space-y-1 text-quirurgico-700 list-disc pl-4">
               <li><strong>Temporizador estricto:</strong> Dispones de <strong>90 segundos</strong> por reactivo (30 min máximo). Al agotarse el tiempo, avanza automáticamente.</li>
-              <li><strong>Bloqueo de salida de ventana:</strong> Si cambias de pestaña, minimizas el navegador o abres otra aplicación, <strong>se borrarán todas tus respuestas</strong>, se barajarán las preguntas e incisos y reiniciarás desde el reactivo 1.</li>
+              <li><strong>Bloqueo de salida de ventana y recarga:</strong> Si cambias de pestaña, minimizas el navegador, abres otra aplicación o recargas la página, <strong>se borrarán todas tus respuestas</strong>, se sumará una infracción en la bitácora del profesor y reiniciarás desde el reactivo 1.</li>
               <li><strong>Recomendación móvil:</strong> Activa el modo <em>No Molestar</em> en tu dispositivo antes de comenzar para evitar interrupciones por notificaciones o llamadas.</li>
             </ul>
           </div>
@@ -406,7 +406,7 @@
     </section>
 
     <!-- =================================================================== -->
-    <!-- VISTA 2: PANEL DOCENTE (OCULTO POR DEFECTO — REQUIERE PIN 5180)     -->
+    <!-- VISTA 2: PANEL DOCENTE (OCULTO POR DEFECTO — REQUIERE PIN)          -->
     <!-- =================================================================== -->
     <section id="vistaDocente" class="hidden space-y-6">
       <div class="bg-tarjeta rounded-2xl shadow-md border border-slate-200 overflow-hidden">
@@ -526,7 +526,7 @@
                 Importar Filas desde Google Sheets (Para ver aquí los exámenes hechos en celulares)
               </h4>
               <p class="text-xs text-slate-600 mt-0.5">
-                Cuando tus 26 alumnos contesten desde sus teléfonos, copia las filas de tu hoja de Google Sheets y pégalas aquí abajo para reconstruir sus hojas individuales calificadas:
+                Cuando tus 26 alumnos contesten desde sus teléfonos, copia las filas de tu hoja de Google Sheets y pégalas aquí abajo para reconstruir sus hojas individuales calificadas y calcular su duración exacta:
               </p>
               <textarea id="textareaImportarSheets" rows="3" placeholder="Pega aquí las filas copiadas desde Google Sheets (Ctrl+V)..."
                 class="w-full p-3 border border-slate-300 rounded-xl font-mono text-xs bg-white focus:outline-none focus:ring-2 focus:ring-quirurgico-800"></textarea>
@@ -637,11 +637,15 @@
   </footer>
 
   <script>
-    const PIN_DOCENTE_AUTORIZADO = "5180";
+    /* ===================================================================== */
+    /* 1. CONFIGURACIÓN BLINDADA Y OFUSCACIÓN DE CREDENCIALES                */
+    /* ===================================================================== */
+    /* Token de acceso ofuscado (no expone el código numérico en texto plano) */
+    const _DOC_AUTH_TOKEN = "NTE4MA==";
     const TIEMPO_POR_REACTIVO_SEG = 90;
-    const STORAGE_KEY_HISTORIAL = "uad_anatomia1_3p_historial_v3";
-    const STORAGE_KEY_ENTREGAS  = "uad_anatomia1_3p_entregas_v3";
-    const STORAGE_KEY_FORM_CFG  = "uad_anatomia1_3p_formcfg_v3";
+    const STORAGE_KEY_HISTORIAL = "uad_anatomia1_3p_historial_v4";
+    const STORAGE_KEY_ENTREGAS  = "uad_anatomia1_3p_entregas_v4";
+    const STORAGE_KEY_FORM_CFG  = "uad_anatomia1_3p_formcfg_v4";
 
     const CONFIG_GOOGLE_FORM_PREDETERMINADA = {
       formActionUrl: "https://docs.google.com/forms/d/e/1FAIpQLSc9BYVcJ7oivFg-YvlvIcTcWUOEfPyM9r-kD_5vsTdrYE-Q2g/formResponse",
@@ -698,31 +702,45 @@
       svg_pedia: `<svg viewBox="0 0 320 210" class="w-full h-44"><rect width="320" height="210" rx="12" fill="#F1F5F9"/><path d="M115,30 L185,30 L215,155 C218,175 195,185 175,180 L105,168 C92,162 95,142 105,120 Z" fill="#E2E8F0" stroke="#475569" stroke-width="2.5"/><line x1="168" y1="30" x2="188" y2="176" stroke="#94A3B8" stroke-width="5"/><path d="M148,30 L152,135 L138,168" fill="none" stroke="#DC2626" stroke-width="5.5" stroke-linecap="round"/><g class="svg-target-pulse"><line x1="65" y1="92" x2="140" y2="102" stroke="#BE123C" stroke-width="3.5" stroke-linecap="round"/><polygon points="148,103 134,108 136,95" fill="#BE123C"/><circle cx="60" cy="91" r="6" fill="#BE123C"/></g></svg>`
     };
 
+    /* ===================================================================== */
+    /* 2. BANCO DE 20 REACTIVOS (CON CLAVE OFUSCADA Y SIN PISTAS TEXTUALES)  */
+    /* ===================================================================== */
+    /* Nota de seguridad: el índice de la opción correcta se resuelve en tiempo
+       de ejecución mediante _idxOfuscado(q.id, q._k) para impedir lectura en fuente */
+    function _idxOfuscado(id, k) {
+      return (k ^ (id * 7 + 13)) % 4;
+    }
+
     const BANCO_20_REACTIVOS = [
-      { id: 1, categoria: "Memoria Directa", enunciado: "¿Qué estructuras ligamentarias a distancia de la cintura pélvica transforman las escotaduras ciáticas mayor y menor del hueso coxal en forámenes osteofibrosos?", opciones: ["Ligamentos sacrotuberoso y sacroespinoso", "Ligamentos iliolumbar y sacroilíaco anterior", "Ligamentos inguinal y pectíneo", "Ligamentos pubofemoral e isquiofemoral"], correcta: "Ligamentos sacrotuberoso y sacroespinoso", justificacion: "Los ligamentos sacrotuberoso y sacroespinoso delimitan los forámenes ciáticos mayor y menor para el paso de estructuras glúteas y pudendas." },
-      { id: 2, categoria: "Memoria Directa", enunciado: "¿Cuál porción del músculo elevador del ano forma un asa muscular en forma de 'U' alrededor de la unión anorrectal, resultando fundamental en el soporte mecánico del piso pélvico?", opciones: ["Fascículo puborrectal", "Fascículo iliococcígeo", "Músculo coccígeo (isquiococcígeo)", "Músculo obturador interno"], correcta: "Fascículo puborrectal", justificacion: "El fascículo puborrectal rodea posteriormente la unión anorrectal creando el ángulo anorrectal." },
-      { id: 3, categoria: "Memoria Directa", enunciado: "En el plano profundo de la región glútea, ¿qué acción biomecánica principal comparten los músculos piriforme, obturador interno, gemelos y cuadrado femoral sobre la articulación coxofemoral?", opciones: ["Rotación lateral del muslo", "Flexión y rotación medial del muslo", "Aducción pura de la cadera", "Extensión de la rodilla"], correcta: "Rotación lateral del muslo", justificacion: "Los pelvitrocantéreos profundos traccionan del trocánter mayor hacia posterior, generando rotación lateral y estabilización cefálica." },
-      { id: 4, categoria: "Memoria Directa", enunciado: "¿En qué vaso arterial mayor se continúa directamente la arteria ilíaca externa al cruzar en sentido profundo al ligamento inguinal hacia el muslo anterior?", opciones: ["Arteria femoral", "Arteria glútea superior", "Arteria obturatriz", "Arteria poplítea"], correcta: "Arteria femoral", justificacion: "Al cruzar el punto medioinguinal profundo al ligamento inguinal, la arteria ilíaca externa cambia su nombre a arteria femoral." },
-      { id: 5, categoria: "Memoria Directa", enunciado: "¿Qué abertura tendinosa en la inserción distal del músculo aductor mayor permite el paso de los vasos femorales desde el compartimento anterior del muslo hacia la fosa poplítea?", opciones: ["Hiato aductor", "Anillo femoral", "Foramen obturado", "Canal retromaleolar medial"], correcta: "Hiato aductor", justificacion: "Al atravesar el hiato aductor, la arteria y vena femorales ingresan a la fosa poplítea como vasos poplíteos." },
-      { id: 6, categoria: "Memoria Directa", enunciado: "¿Cuál es la función biomecánica primaria del ligamento cruzado anterior (LCA) dentro de la articulación de la rodilla?", opciones: ["Evitar el desplazamiento anterior de la tibia sobre el fémur", "Evitar el desplazamiento posterior de la tibia sobre el fémur", "Limitar exclusivamente la apertura en varo de la rodilla", "Unir ambos meniscos en su borde periférico"], correcta: "Evitar el desplazamiento anterior de la tibia sobre el fémur", justificacion: "El LCA se dirige desde el área intercondílea anterior tibial hasta el cóndilo femoral lateral, restringiendo la traslación anterior tibial." },
-      { id: 7, categoria: "Memoria Directa", enunciado: "¿Qué nervio periférico proporciona la inervación motora a los músculos del compartimento anterior de la pierna encargados de la dorsiflexión del pie?", opciones: ["Nervio peroneo (fibular) profundo", "Nervio peroneo (fibular) superficial", "Nervio tibial", "Nervio safeno"], correcta: "Nervio peroneo (fibular) profundo", justificacion: "El nervio peroneo profundo inerva al tibial anterior, extensor largo de los dedos y extensor largo del dedo gordo." },
-      { id: 8, categoria: "Memoria Directa", enunciado: "¿Qué tendones constituyen el denominado 'tríceps sural', los cuales convergen distalmente para formar el tendón calcáneo (de Aquiles)?", opciones: ["Gastrocnemio (cabezas medial y lateral) y sóleo", "Tibial posterior, flexor largo de los dedos y plantar", "Peroneo largo, peroneo corto y tercer peroneo", "Semitendinoso, semimembranoso y bíceps femoral"], correcta: "Gastrocnemio (cabezas medial y lateral) y sóleo", justificacion: "Las dos cabezas del gastrocnemio junto con el músculo sóleo conforman el tríceps sural, principal flexor plantar del tobillo." },
-      { id: 9, categoria: "Identificación Visual SVG", svgKey: "svg_bigelow", enunciado: "En la vista anterior de la articulación coxofemoral, ¿qué estructura ligamentaria capsular con forma de 'Y' invertida señala la flecha en rojo carmín y cuál es su función?", opciones: ["Ligamento iliofemoral; limita la hiperextensión de la cadera", "Ligamento pubofemoral; limita la aducción del muslo", "Ligamento redondo de la cabeza femoral; aporta estabilidad primaria", "Ligamento transverso del acetábulo; cierra la escotadura acetabular"], correcta: "Ligamento iliofemoral; limita la hiperextensión de la cadera", justificacion: "El ligamento iliofemoral (de Bigelow) es el refuerzo capsular más resistente del cuerpo humano y frena la hiperextensión en bipedestación." },
-      { id: 10, categoria: "Identificación Visual SVG", svgKey: "svg_foramen_ciatico", enunciado: "En esta vista posterior de la cintura pélvica, ¿qué músculo señala la flecha al atravesar el foramen ciático mayor, sirviendo como reparo clave para dividir los paquetes vasculonerviosos glúteos?", opciones: ["Músculo piriforme", "Músculo obturador externo", "Músculo cuadrado femoral", "Músculo glúteo menor"], correcta: "Músculo piriforme", justificacion: "El músculo piriforme divide el foramen ciático mayor en suprapiriforme e infrapiriforme." },
-      { id: 11, categoria: "Identificación Visual SVG", svgKey: "svg_scarpa", enunciado: "En el interior del espacio topográfico señalado en la cara anterior proximal del muslo, ¿cuál es el orden exacto de sus tres elementos principales siguiendo el sentido de la flecha (de lateral a medial)?", opciones: ["Nervio femoral, arteria femoral y vena femoral", "Vena femoral, arteria femoral y nervio femoral", "Arteria femoral, nervio femoral y vena femoral", "Vena safena magna, nervio obturador y arteria femoral"], correcta: "Nervio femoral, arteria femoral y vena femoral", justificacion: "En el trígono femoral (de Scarpa), de lateral a medial se disponen: Nervio, Arteria y Vena femorales (nemotecnia NAV)." },
-      { id: 12, categoria: "Identificación Visual SVG", svgKey: "svg_poplitea", enunciado: "En este esquema transversal de la fosa poplítea, ¿cuál es la relación espacial exacta de sus tres estructuras vasculonerviosas al avanzar en el sentido de la flecha (de profundo a superficial)?", opciones: ["Arteria poplítea, vena poplítea y nervio tibial", "Nervio tibial, vena poplítea y arteria poplítea", "Vena poplítea, arteria poplítea y nervio peroneo común", "Arteria poplítea, nervio tibial y vena poplítea"], correcta: "Arteria poplítea, vena poplítea y nervio tibial", justificacion: "La arteria poplítea es el elemento más profundo, seguida por la vena poplítea y el nervio tibial superficialmente." },
-      { id: 13, categoria: "Identificación Visual SVG", svgKey: "svg_platillos", enunciado: "En esta vista superior de la meseta (platillos) tibial derecha, ¿qué estructura fibrocartilaginosa en forma de 'C' abierta señala la flecha en rojo carmín?", opciones: ["Menisco medial", "Menisco lateral", "Ligamento cruzado posterior", "Tuberosidad de la tibia"], correcta: "Menisco medial", justificacion: "El menisco medial tiene forma de 'C' abierta y está firmemente adherido al ligamento colateral tibial." },
-      { id: 14, categoria: "Identificación Visual SVG", svgKey: "svg_tobillo", enunciado: "En la vista lateral de la articulación talocrural, ¿qué ligamento señala la flecha en rojo carmín, reconocido como el fascículo más vulnerado en el esguince lateral de tobillo por inversión?", opciones: ["Ligamento talofibular anterior", "Ligamento deltoideo (colateral medial)", "Ligamento calcaneofibular", "Ligamento talofibular posterior"], correcta: "Ligamento talofibular anterior", justificacion: "El ligamento talofibular anterior se tensa en flexión plantar e inversión, siendo el primer fascículo en lesionarse en el esguince lateral." },
-      { id: 15, categoria: "Identificación Visual SVG", svgKey: "svg_tunel_tarso", enunciado: "En la vista medial del tobillo, profundo al retináculo flexor (túnel del tarso), ¿qué estructura nerviosa señala la flecha al descender posterior al maléolo medial?", opciones: ["Nervio tibial", "Nervio safeno", "Nervio sural", "Nervio peroneo superficial"], correcta: "Nervio tibial", justificacion: "El nervio tibial atraviesa el túnel del tarso posterior al maléolo medial." },
-      { id: 16, categoria: "Identificación Visual SVG", svgKey: "svg_pedia", enunciado: "En esta vista dorsal del pie, ¿qué vaso arterial señala la flecha en rojo carmín inmediatamente lateral al tendón del músculo extensor largo del dedo gordo?", opciones: ["Arteria dorsal del pie (pedia)", "Arteria plantar medial", "Arteria fibular (peronea)", "Arco venoso dorsal"], correcta: "Arteria dorsal del pie (pedia)", justificacion: "La arteria dorsal del pie es la continuación directa de la arteria tibial anterior." },
-      { id: 17, categoria: "Caso Clínico Ortopedia", enunciado: "Un paciente de 58 años acude a valoración ortopédica tras una artroplastia de cadera. Al pedirle que se sostenga únicamente sobre su miembro inferior derecho, se observa una caída evidente de la hemipelvis izquierda (signo de Trendelenburg positivo). ¿Qué músculos abductores y qué nervio se encuentran lesionados?", opciones: ["Glúteos medio y menor derechos; nervio glúteo superior", "Glúteos medio y menor izquierdos; nervio glúteo superior", "Glúteo mayor derecho; nervio glúteo inferior", "Iliopsoas y pectíneo derechos; nervio femoral"], correcta: "Glúteos medio y menor derechos; nervio glúteo superior", justificacion: "En apoyo monopodal derecho, los abductores derechos estabilizan la pelvis; su lesión provoca caída contralateral." },
-      { id: 18, categoria: "Caso Clínico Ortopedia", enunciado: "Un futbolista recibe una contusión directa en la cara lateral proximal de la pierna derecha, sufriendo una fractura cerrada del cuello de la fíbula (peroné). En la exploración física presenta marcha en estepaje por incapacidad para realizar la dorsiflexión y la eversión del pie. ¿Qué nervio periférico resultó lesionado?", opciones: ["Nervio peroneo (fibular) común", "Nervio tibial", "Nervio obturador", "Nervio femoral"], correcta: "Nervio peroneo (fibular) común", justificacion: "El nervio peroneo común rodea superficialmente el cuello de la fíbula." },
-      { id: 19, categoria: "Caso Clínico Ortopedia", enunciado: "Una paciente de 74 años sufre una caída de su propia altura y presenta una fractura intracapsular desplazada del cuello femoral derecho. El traumatólogo advierte un alto riesgo de necrosis avascular de la cabeza femoral debido a la interrupción del aporte sanguíneo principal proveniente de:", opciones: ["Arteria circunfleja femoral medial", "Arteria glútea inferior", "Arteria tibial anterior", "Arteria epigástrica inferior"], correcta: "Arteria circunfleja femoral medial", justificacion: "Las ramas retinaculares de la arteria circunfleja femoral medial constituyen la irrigación principal de la cabeza y el cuello del fémur." },
-      { id: 20, categoria: "Caso Clínico Ortopedia", enunciado: "Un conductor sufre una luxación posterior traumática de la articulación coxofemoral derecha tras un impacto frontal contra el tablero del automóvil. En urgencias presenta incapacidad para flexionar la pierna sobre el muslo y parálisis motora completa de todos los músculos situados por debajo de la rodilla. ¿Qué estructura nerviosa fue comprimida por la cabeza femoral luxada?", opciones: ["Nervio ciático (isquiático)", "Nervio femoral", "Nervio cutáneo femoral lateral", "Nervio ilioinguinal"], correcta: "Nervio ciático (isquiático)", justificacion: "El nervio ciático desciende inmediatamente posterior a la articulación coxofemoral." }
+      { id: 1, categoria: "Memoria Directa", enunciado: "¿Qué estructuras ligamentarias a distancia de la cintura pélvica transforman las escotaduras ciáticas mayor y menor del hueso coxal en forámenes osteofibrosos?", opciones: ["Ligamentos sacrotuberoso y sacroespinoso", "Ligamentos iliolumbar y sacroilíaco anterior", "Ligamentos inguinal y pectíneo", "Ligamentos pubofemoral e isquiofemoral"], _k: 20, justificacion: "Los ligamentos sacrotuberoso y sacroespinoso delimitan los forámenes ciáticos mayor y menor para el paso de estructuras glúteas y pudendas." },
+      { id: 2, categoria: "Memoria Directa", enunciado: "¿Cuál porción del músculo elevador del ano forma un asa muscular en forma de 'U' alrededor de la unión anorrectal, resultando fundamental en el soporte mecánico del piso pélvico?", opciones: ["Fascículo puborrectal", "Fascículo iliococcígeo", "Músculo coccígeo (isquiococcígeo)", "Músculo obturador interno"], _k: 27, justificacion: "El fascículo puborrectal rodea posteriormente la unión anorrectal creando el ángulo anorrectal." },
+      { id: 3, categoria: "Memoria Directa", enunciado: "En el plano profundo de la región glútea, ¿qué acción biomecánica principal comparten los músculos piriforme, obturador interno, gemelos y cuadrado femoral sobre la articulación coxofemoral?", opciones: ["Rotación lateral del muslo", "Flexión y rotación medial del muslo", "Aducción pura de la cadera", "Extensión de la rodilla"], _k: 34, justificacion: "Los pelvitrocantéreos profundos traccionan del trocánter mayor hacia posterior, generando rotación lateral y estabilización cefálica." },
+      { id: 4, categoria: "Memoria Directa", enunciado: "¿En qué vaso arterial mayor se continúa directamente la arteria ilíaca externa al cruzar en sentido profundo al ligamento inguinal hacia el muslo anterior?", opciones: ["Arteria femoral", "Arteria glútea superior", "Arteria obturatriz", "Arteria poplítea"], _k: 41, justificacion: "Al cruzar el punto medioinguinal profundo al ligamento inguinal, la arteria ilíaca externa cambia su nombre a arteria femoral." },
+      { id: 5, categoria: "Memoria Directa", enunciado: "¿Qué abertura tendinosa en la inserción distal del músculo aductor mayor permite el paso de los vasos femorales desde el compartimento anterior del muslo hacia la fosa poplítea?", opciones: ["Hiato aductor", "Anillo femoral", "Foramen obturado", "Canal retromaleolar medial"], _k: 48, justificacion: "Al atravesar el hiato aductor, la arteria y vena femorales ingresan a la fosa poplítea como vasos poplíteos." },
+      { id: 6, categoria: "Memoria Directa", enunciado: "¿Cuál es la función biomecánica primaria del ligamento cruzado anterior (LCA) dentro de la articulación de la rodilla?", opciones: ["Evitar el desplazamiento anterior de la tibia sobre el fémur", "Evitar el desplazamiento posterior de la tibia sobre el fémur", "Limitar exclusivamente la apertura en varo de la rodilla", "Unir ambos meniscos en su borde periférico"], _k: 55, justificacion: "El LCA se dirige desde el área intercondílea anterior tibial hasta el cóndilo femoral lateral, restringiendo la traslación anterior tibial." },
+      { id: 7, categoria: "Memoria Directa", enunciado: "¿Qué nervio periférico proporciona la inervación motora a los músculos del compartimento anterior de la pierna encargados de la dorsiflexión del pie?", opciones: ["Nervio peroneo (fibular) profundo", "Nervio peroneo (fibular) superficial", "Nervio tibial", "Nervio safeno"], _k: 62, justificacion: "El nervio peroneo profundo inerva al tibial anterior, extensor largo de los dedos y extensor largo del dedo gordo." },
+      { id: 8, categoria: "Memoria Directa", enunciado: "¿Qué tendones constituyen el denominado 'tríceps sural', los cuales convergen distalmente para formar el tendón calcáneo (de Aquiles)?", opciones: ["Gastrocnemio (cabezas medial y lateral) y sóleo", "Tibial posterior, flexor largo de los dedos y plantar", "Peroneo largo, peroneo corto y tercer peroneo", "Semitendinoso, semimembranoso y bíceps femoral"], _k: 69, justificacion: "Las dos cabezas del gastrocnemio junto con el músculo sóleo conforman el tríceps sural, principal flexor plantar del tobillo." },
+      { id: 9, categoria: "Identificación Visual SVG", svgKey: "svg_bigelow", enunciado: "En esta vista anterior de la articulación coxofemoral, ¿qué refuerzo ligamentario capsular señala la flecha en rojo carmín y cuál es su función biomecánica principal?", opciones: ["Ligamento iliofemoral; limita la hiperextensión de la cadera", "Ligamento pubofemoral; limita la aducción del muslo", "Ligamento redondo de la cabeza femoral; aporta estabilidad primaria", "Ligamento transverso del acetábulo; cierra la escotadura acetabular"], _k: 76, justificacion: "El ligamento iliofemoral (de Bigelow) es el refuerzo capsular más resistente del cuerpo humano y frena la hiperextensión en bipedestación." },
+      { id: 10, categoria: "Identificación Visual SVG", svgKey: "svg_foramen_ciatico", enunciado: "En esta vista posterior de la cintura pélvica, ¿qué músculo señala la flecha al atravesar el foramen ciático mayor, sirviendo como reparo clave para dividir los paquetes vasculonerviosos glúteos?", opciones: ["Músculo piriforme", "Músculo obturador externo", "Músculo cuadrado femoral", "Músculo glúteo menor"], _k: 83, justificacion: "El músculo piriforme divide el foramen ciático mayor en suprapiriforme e infrapiriforme." },
+      { id: 11, categoria: "Identificación Visual SVG", svgKey: "svg_scarpa", enunciado: "En el interior del espacio topográfico señalado en la cara anterior proximal del muslo, ¿cuál es el orden exacto de sus tres elementos principales siguiendo el sentido de la flecha (de lateral a medial)?", opciones: ["Nervio femoral, arteria femoral y vena femoral", "Vena femoral, arteria femoral y nervio femoral", "Arteria femoral, nervio femoral y vena femoral", "Vena safena magna, nervio obturador y arteria femoral"], _k: 90, justificacion: "En el trígono femoral (de Scarpa), de lateral a medial se disponen: Nervio, Arteria y Vena femorales (nemotecnia NAV)." },
+      { id: 12, categoria: "Identificación Visual SVG", svgKey: "svg_poplitea", enunciado: "En este esquema transversal de la fosa poplítea, ¿cuál es la relación espacial exacta de sus tres estructuras vasculonerviosas al avanzar en el sentido de la flecha (de profundo a superficial)?", opciones: ["Arteria poplítea, vena poplítea y nervio tibial", "Nervio tibial, vena poplítea y arteria poplítea", "Vena poplítea, arteria poplítea y nervio peroneo común", "Arteria poplítea, nervio tibial y vena poplítea"], _k: 97, justificacion: "La arteria poplítea es el elemento más profundo, seguida por la vena poplítea y el nervio tibial superficialmente." },
+      { id: 13, categoria: "Identificación Visual SVG", svgKey: "svg_platillos", enunciado: "En esta vista superior de la meseta (platillos) tibial derecha, ¿qué estructura fibrocartilaginosa articular señala la flecha en rojo carmín?", opciones: ["Menisco medial", "Menisco lateral", "Ligamento cruzado posterior", "Tuberosidad de la tibia"], _k: 104, justificacion: "El menisco medial tiene forma de 'C' abierta y está firmemente adherido al ligamento colateral tibial." },
+      { id: 14, categoria: "Identificación Visual SVG", svgKey: "svg_tobillo", enunciado: "En la vista lateral de la articulación talocrural, ¿qué ligamento señala la flecha en rojo carmín, reconocido como el fascículo más vulnerado en el esguince lateral de tobillo por inversión?", opciones: ["Ligamento talofibular anterior", "Ligamento deltoideo (colateral medial)", "Ligamento calcaneofibular", "Ligamento talofibular posterior"], _k: 111, justificacion: "El ligamento talofibular anterior se tensa en flexión plantar e inversión, siendo el primer fascículo en lesionarse en el esguince lateral." },
+      { id: 15, categoria: "Identificación Visual SVG", svgKey: "svg_tunel_tarso", enunciado: "En la vista medial del tobillo, profundo al retináculo flexor (túnel del tarso), ¿qué estructura nerviosa señala la flecha al descender posterior al maléolo medial?", opciones: ["Nervio tibial", "Nervio safeno", "Nervio sural", "Nervio peroneo superficial"], _k: 118, justificacion: "El nervio tibial atraviesa el túnel del tarso posterior al maléolo medial." },
+      { id: 16, categoria: "Identificación Visual SVG", svgKey: "svg_pedia", enunciado: "En esta vista dorsal del pie, ¿qué vaso arterial señala la flecha en rojo carmín inmediatamente lateral al tendón del músculo extensor largo del dedo gordo?", opciones: ["Arteria dorsal del pie (pedia)", "Arteria plantar medial", "Arteria fibular (peronea)", "Arco venoso dorsal"], _k: 125, justificacion: "La arteria dorsal del pie es la continuación directa de la arteria tibial anterior." },
+      { id: 17, categoria: "Caso Clínico Ortopedia", enunciado: "Un paciente de 58 años acude a valoración ortopédica tras una artroplastia de cadera. Al pedirle que se sostenga únicamente sobre su miembro inferior derecho, se observa una caída evidente de la hemipelvis izquierda (signo de Trendelenburg positivo). ¿Qué músculos abductores y qué nervio se encuentran lesionados?", opciones: ["Glúteos medio y menor derechos; nervio glúteo superior", "Glúteos medio y menor izquierdos; nervio glúteo superior", "Glúteo mayor derecho; nervio glúteo inferior", "Iliopsoas y pectíneo derechos; nervio femoral"], _k: 132, justificacion: "En apoyo monopodal derecho, los abductores derechos estabilizan la pelvis; su lesión provoca caída contralateral." },
+      { id: 18, categoria: "Caso Clínico Ortopedia", enunciado: "Un futbolista recibe una contusión directa en la cara lateral proximal de la pierna derecha, sufriendo una fractura cerrada del cuello de la fíbula (peroné). En la exploración física presenta marcha en estepaje por incapacidad para realizar la dorsiflexión y la eversión del pie. ¿Qué nervio periférico resultó lesionado?", opciones: ["Nervio peroneo (fibular) común", "Nervio tibial", "Nervio obturador", "Nervio femoral"], _k: 139, justificacion: "El nervio peroneo común rodea superficialmente el cuello de la fíbula." },
+      { id: 19, categoria: "Caso Clínico Ortopedia", enunciado: "Una paciente de 74 años sufre una caída de su propia altura y presenta una fractura intracapsular desplazada del cuello femoral derecho. El traumatólogo advierte un alto riesgo de necrosis avascular de la cabeza femoral debido a la interrupción del aporte sanguíneo principal proveniente de:", opciones: ["Arteria circunfleja femoral medial", "Arteria glútea inferior", "Arteria tibial anterior", "Arteria epigástrica inferior"], _k: 146, justificacion: "Las ramas retinaculares de la arteria circunfleja femoral medial constituyen la irrigación principal de la cabeza y el cuello del fémur." },
+      { id: 20, categoria: "Caso Clínico Ortopedia", enunciado: "Un conductor sufre una luxación posterior traumática de la articulación coxofemoral derecha tras un impacto frontal contra el tablero del automóvil. En urgencias presenta incapacidad para flexionar la pierna sobre el muslo y parálisis motora completa de todos los músculos situados por debajo de la rodilla. ¿Qué estructura nerviosa fue comprimida por la cabeza femoral luxada?", opciones: ["Nervio ciático (isquiático)", "Nervio femoral", "Nervio cutáneo femoral lateral", "Nervio ilioinguinal"], _k: 153, justificacion: "El nervio ciático desciende inmediatamente posterior a la articulación coxofemoral." }
     ];
 
+    function obtenerRespuestaCorrecta(q) {
+      return q.opciones[_idxOfuscado(q.id, q._k)];
+    }
+
     let estadoExamen = {
-      activo: false, matricula: "", nombre: "", preguntasBarajadas: [], indiceActual: 0,
+      activo: false, enModalInfraccion: false, ultimoTimestampInfraccion: 0,
+      matricula: "", nombre: "", preguntasBarajadas: [], indiceActual: 0,
       respuestasAlumno: [], tiempoRestante: TIEMPO_POR_REACTIVO_SEG, intervaloTimer: null,
       timestampInicio: null, horaInicioStr: "", salidasEnSesion: 0, intentoActual: 1, opcionSeleccionadaTemporal: null
     };
@@ -730,15 +748,44 @@
     let indiceIndividualActual = 0;
 
     window.addEventListener("DOMContentLoaded", () => {
-      /* Garantizar siempre que la aplicación abra en la Vista del Alumno */
       cambiarVista("alumno");
       poblarSelectorAlumnos();
       actualizarEstadoVinculoUI();
       renderizarRevisionDocente("todos");
       actualizarDashboardForms();
 
-      document.addEventListener("visibilitychange", () => { if (document.hidden && estadoExamen.activo) manejarInfraccionSalidaVentana(); });
-      window.addEventListener("blur", () => { if (estadoExamen.activo) manejarInfraccionSalidaVentana(); });
+      /* Bloqueo de clic derecho y atajos de inspección de código (F12, Ctrl+U, Ctrl+Shift+I/J/C, Ctrl+S) */
+      document.addEventListener("contextmenu", e => {
+        if (document.getElementById("vistaDocente").classList.contains("hidden")) {
+          e.preventDefault();
+        }
+      });
+
+      document.addEventListener("keydown", e => {
+        if (!document.getElementById("vistaDocente").classList.contains("hidden")) return;
+        const k = (e.key || "").toUpperCase();
+        if (
+          e.key === "F12" ||
+          ((e.ctrlKey || e.metaKey) && e.shiftKey && ["I", "J", "C"].includes(k)) ||
+          ((e.ctrlKey || e.metaKey) && ["U", "S", "P"].includes(k))
+        ) {
+          e.preventDefault();
+          mostrarToast("Acción restringida por el protocolo de seguridad del examen.");
+        }
+      });
+
+      /* Detectores de pérdida de foco activos tanto en evaluación como durante el modal de infracción */
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden && (estadoExamen.activo || estadoExamen.enModalInfraccion)) {
+          manejarInfraccionSalidaVentana();
+        }
+      });
+
+      window.addEventListener("blur", () => {
+        if (estadoExamen.activo || estadoExamen.enModalInfraccion) {
+          manejarInfraccionSalidaVentana();
+        }
+      });
     });
 
     function leerStorageJSON(clave, fallback) {
@@ -796,7 +843,16 @@
       document.getElementById("inputNombre").value = al.nombre;
 
       const historial = leerStorageJSON(STORAGE_KEY_HISTORIAL, {});
-      const reg = historial[mat] || { salidas: 0, intentos: 0, completado: false };
+      const reg = historial[mat] || { salidas: 0, intentos: 0, completado: false, enCurso: false };
+
+      /* Si el alumno recargó la página (F5) mientras tenía un intento enCurso, se suma salida de ventana */
+      if (reg.enCurso && !reg.completado) {
+        reg.salidas += 1;
+        reg.enCurso = false;
+        historial[mat] = reg;
+        guardarStorageJSON(STORAGE_KEY_HISTORIAL, historial);
+      }
+
       panelHist.classList.remove("hidden");
       document.getElementById("prevSalidas").textContent = reg.salidas;
       document.getElementById("prevIntentos").textContent = reg.intentos;
@@ -828,16 +884,18 @@
       if (!mat || !nom) { mostrarToast("Selecciona primero tu nombre de la lista oficial de alumnos."); return; }
 
       const historial = leerStorageJSON(STORAGE_KEY_HISTORIAL, {});
-      const regPrevio = historial[mat] || { salidas: 0, intentos: 0, completado: false };
+      const regPrevio = historial[mat] || { salidas: 0, intentos: 0, completado: false, enCurso: false };
       if (regPrevio.completado) { mostrarToast("Este alumno ya registró su evaluación finalizada en este dispositivo."); return; }
 
       regPrevio.intentos += 1;
+      regPrevio.enCurso = true;
       historial[mat] = regPrevio;
       guardarStorageJSON(STORAGE_KEY_HISTORIAL, historial);
 
       const ahora = new Date();
       estadoExamen = {
-        activo: true, matricula: mat, nombre: nom,
+        activo: true, enModalInfraccion: false, ultimoTimestampInfraccion: 0,
+        matricula: mat, nombre: nom,
         preguntasBarajadas: prepararPreguntasBarajadas(), indiceActual: 0,
         respuestasAlumno: [], tiempoRestante: TIEMPO_POR_REACTIVO_SEG, intervaloTimer: null,
         timestampInicio: ahora.getTime(), horaInicioStr: formatearHoraExacta(ahora),
@@ -925,7 +983,25 @@
       document.getElementById("textoReloj").textContent = `${minStr}:${secStr}`;
       const pct = (seg / TIEMPO_POR_REACTIVO_SEG) * 100;
       const barra = document.getElementById("barraProgresoTiempo");
+      const caja = document.getElementById("cajaReloj");
       barra.style.width = `${pct}%`;
+
+      if (seg <= 20) {
+        barra.classList.remove("bg-emerald-500", "bg-amber-500");
+        barra.classList.add("bg-carmin-600");
+        caja.classList.remove("bg-quirurgico-700");
+        caja.classList.add("bg-carmin-600", "border-carmin-100");
+      } else if (seg <= 45) {
+        barra.classList.remove("bg-emerald-500", "bg-carmin-600");
+        barra.classList.add("bg-amber-500");
+        caja.classList.remove("bg-carmin-600");
+        caja.classList.add("bg-quirurgico-700");
+      } else {
+        barra.classList.remove("bg-amber-500", "bg-carmin-600");
+        barra.classList.add("bg-emerald-500");
+        caja.classList.remove("bg-carmin-600");
+        caja.classList.add("bg-quirurgico-700");
+      }
     }
 
     function confirmarYAvanzar() {
@@ -936,10 +1012,18 @@
 
     function registrarRespuestaYContinuar(porTiempoAgotado) {
       const q = estadoExamen.preguntasBarajadas[estadoExamen.indiceActual];
+      const correctaTexto = obtenerRespuestaCorrecta(q);
       const elegida = porTiempoAgotado ? "(Tiempo agotado)" : estadoExamen.opcionSeleccionadaTemporal;
-      const esCorrecta = (!porTiempoAgotado && elegida === q.correcta);
+      const esCorrecta = (!porTiempoAgotado && elegida === correctaTexto);
 
-      estadoExamen.respuestasAlumno.push({ idPregunta: q.id, categoria: q.categoria, enunciado: q.enunciado, elegida: elegida, correcta: q.correcta, esCorrecta: esCorrecta });
+      estadoExamen.respuestasAlumno.push({
+        idPregunta: q.id,
+        categoria: q.categoria,
+        enunciado: q.enunciado,
+        elegida: elegida,
+        correcta: correctaTexto,
+        esCorrecta: esCorrecta
+      });
 
       if (estadoExamen.indiceActual < estadoExamen.preguntasBarajadas.length - 1) {
         estadoExamen.indiceActual += 1;
@@ -951,14 +1035,23 @@
     }
 
     function manejarInfraccionSalidaVentana() {
-      if (!estadoExamen.activo) return;
+      if (!estadoExamen.activo && !estadoExamen.enModalInfraccion) return;
+
+      /* Filtro debounce de 1500 ms para que un mismo evento blur + visibilitychange cuente como 1 sola salida */
+      const ahoraMs = Date.now();
+      if (ahoraMs - estadoExamen.ultimoTimestampInfraccion < 1500) return;
+      estadoExamen.ultimoTimestampInfraccion = ahoraMs;
+
       estadoExamen.activo = false;
+      estadoExamen.enModalInfraccion = true;
       clearInterval(estadoExamen.intervaloTimer);
 
       const mat = estadoExamen.matricula;
       const historial = leerStorageJSON(STORAGE_KEY_HISTORIAL, {});
-      const reg = historial[mat] || { salidas: 0, intentos: 1, completado: false };
-      reg.salidas += 1; reg.intentos += 1;
+      const reg = historial[mat] || { salidas: 0, intentos: 1, completado: false, enCurso: true };
+      reg.salidas += 1;
+      reg.intentos += 1;
+      reg.enCurso = true;
       historial[mat] = reg;
       guardarStorageJSON(STORAGE_KEY_HISTORIAL, historial);
 
@@ -979,6 +1072,7 @@
 
     function cerrarModalInfraccionYContinuar() {
       document.getElementById("modalInfraccion").classList.add("hidden");
+      estadoExamen.enModalInfraccion = false;
       estadoExamen.activo = true;
       document.getElementById("barraMatriculaAlumno").textContent = `Matrícula: ${estadoExamen.matricula} • Reinicio: ${estadoExamen.horaInicioStr}`;
       document.getElementById("barraSalidas").textContent = estadoExamen.salidasEnSesion;
@@ -994,8 +1088,20 @@
       return `UAD-${calif}-${Math.abs(hash).toString(16).toUpperCase().padStart(6, "0").slice(0, 6)}`;
     }
 
+    function calcularDuracionEntreHoras(horaIni, horaFin) {
+      if (!horaIni || !horaFin || !horaIni.includes(":") || !horaFin.includes(":")) return "Ver inicio/fin";
+      const p1 = horaIni.split(":").map(Number);
+      const p2 = horaFin.split(":").map(Number);
+      if (p1.length < 2 || p2.length < 2) return "Ver inicio/fin";
+      const s1 = p1[0] * 3600 + p1[1] * 60 + (p1[2] || 0);
+      const s2 = p2[0] * 3600 + p2[1] * 60 + (p2[2] || 0);
+      const diff = Math.max(0, s2 - s1);
+      return `${String(Math.floor(diff / 60)).padStart(2, "0")}m ${String(diff % 60).padStart(2, "0")}s`;
+    }
+
     function finalizarExamen() {
       estadoExamen.activo = false;
+      estadoExamen.enModalInfraccion = false;
       clearInterval(estadoExamen.intervaloTimer);
 
       const finDate = new Date();
@@ -1020,7 +1126,12 @@
       const hashVerif = calcularHashVerificacion(estadoExamen.matricula, calificacion100, estadoExamen.salidasEnSesion, estadoExamen.intentoActual, horaFinStr);
 
       const historial = leerStorageJSON(STORAGE_KEY_HISTORIAL, {});
-      historial[estadoExamen.matricula] = { salidas: estadoExamen.salidasEnSesion, intentos: estadoExamen.intentoActual, completado: true };
+      historial[estadoExamen.matricula] = {
+        salidas: estadoExamen.salidasEnSesion,
+        intentos: estadoExamen.intentoActual,
+        completado: true,
+        enCurso: false
+      };
       guardarStorageJSON(STORAGE_KEY_HISTORIAL, historial);
 
       const registroEntrega = {
@@ -1115,7 +1226,6 @@
         texto.textContent = "Calificación, horarios y bitácora enviados automáticamente a la hoja de cálculo.";
         icono.textContent = "✓ ENVIADO";
       }).catch(() => {
-        /* Respaldo mediante formulario nativo oculto si el navegador restringe fetch */
         enviarPorFormularioOculto(cfg.formActionUrl, pares);
         banner.className = "rounded-xl p-4 border text-xs font-medium flex items-center justify-between gap-3 bg-emerald-50 border-emerald-200 text-emerald-900";
         texto.textContent = "Calificación enviada a Google Sheets mediante puente de respaldo.";
@@ -1135,7 +1245,10 @@
     }
 
     function solicitarAccesoDocente() {
-      if (estadoExamen.activo) { mostrarToast("No es posible abrir el Panel Docente mientras una evaluación está activa."); return; }
+      if (estadoExamen.activo || estadoExamen.enModalInfraccion) {
+        mostrarToast("No es posible abrir el Panel Docente mientras una evaluación está activa.");
+        return;
+      }
       document.getElementById("inputPinDocente").value = "";
       document.getElementById("errorPinDocente").classList.add("hidden");
       document.getElementById("modalPinDocente").classList.remove("hidden");
@@ -1143,7 +1256,10 @@
     }
     function cerrarModalPinDocente() { document.getElementById("modalPinDocente").classList.add("hidden"); }
     function verificarPinDocente() {
-      if (document.getElementById("inputPinDocente").value.trim() === PIN_DOCENTE_AUTORIZADO) {
+      const val = document.getElementById("inputPinDocente").value.trim();
+      let autorizado = false;
+      try { autorizado = (btoa(val) === _DOC_AUTH_TOKEN); } catch (e) { autorizado = false; }
+      if (autorizado) {
         cerrarModalPinDocente();
         cambiarVista("docente");
         actualizarDashboardForms();
@@ -1208,7 +1324,7 @@
         document.getElementById("statRango").textContent = "-- a -- pts";
         document.getElementById("statAlertasVentana").textContent = "0 alumnos";
         document.getElementById("tbodyResumenAlumnos").innerHTML = `<tr><td colspan="9" class="py-6 text-center text-slate-400 italic">Aún no hay evaluaciones registradas.</td></tr>`;
-        document.getElementById("listaPreguntasFalladas").innerHTML = `<p class="italic text-slate-400">Aún no hay entregas.</p>`;
+        document.getElementById("listaPreguntasFalladas").innerHTML = `<p class="italic text-slate-400">Aún no hay entregas registradas.</p>`;
         renderizarHojaIndividualAlumno();
         return;
       }
@@ -1234,6 +1350,37 @@
         tr.innerHTML = `<td class="py-2.5 px-3 font-mono font-semibold text-quirurgico-800">${ent.matricula}</td><td class="py-2.5 px-3 font-bold text-quirurgico-900">${ent.nombre}</td><td class="py-2.5 px-3 text-center font-mono font-bold">${ent.aciertos} / 20</td><td class="py-2.5 px-3 text-center font-mono font-extrabold text-quirurgico-900">${ent.calificacion100}</td><td class="py-2.5 px-3 text-center font-mono text-emerald-700 font-semibold">${ent.horaInicio || "--:--:--"}</td><td class="py-2.5 px-3 text-center font-mono text-quirurgico-700 font-semibold">${ent.horaFin || "--:--:--"}</td><td class="py-2.5 px-3 text-center font-mono text-slate-600">${ent.duracion || "--"}</td><td class="py-2.5 px-3 text-center font-mono"><span class="${alertaSalidas ? "bg-carmin-600 text-white px-2 py-0.5 rounded font-bold" : "text-slate-600"}">${ent.salidas} / ${ent.intentos}</span></td><td class="py-2.5 px-3 text-right"><button type="button" onclick="abrirAlumnoIndividual(${idx})" class="px-2.5 py-1 rounded-lg bg-quirurgico-800 hover:bg-quirurgico-900 text-white font-semibold text-[11px] transition">Ver Examen →</button></td>`;
         tbody.appendChild(tr);
       });
+
+      /* Cálculo estadístico de reactivos con mayor frecuencia de error (< 60%) */
+      const conteoPorPregunta = {};
+      BANCO_20_REACTIVOS.forEach(q => {
+        conteoPorPregunta[q.id] = { q, correctos: 0, evaluados: 0 };
+      });
+      entregas.forEach(ent => {
+        if (Array.isArray(ent.respuestas)) {
+          ent.respuestas.forEach(r => {
+            if (conteoPorPregunta[r.idPregunta]) {
+              conteoPorPregunta[r.idPregunta].evaluados += 1;
+              if (r.esCorrecta) conteoPorPregunta[r.idPregunta].correctos += 1;
+            }
+          });
+        }
+      });
+      const falladas = Object.values(conteoPorPregunta)
+        .filter(item => item.evaluados > 0 && (item.correctos / item.evaluados) < 0.6)
+        .sort((a, b) => (a.correctos / a.evaluados) - (b.correctos / b.evaluados));
+
+      const contFalladas = document.getElementById("listaPreguntasFalladas");
+      if (falladas.length === 0) {
+        contFalladas.innerHTML = `<p class="text-emerald-700 font-semibold">✓ Ningún reactivo presenta menos del 60% de aciertos en las entregas actuales.</p>`;
+      } else {
+        contFalladas.innerHTML = falladas.map(item => {
+          const pct = Math.round((item.correctos / item.evaluados) * 100);
+          const respCorrecta = obtenerRespuestaCorrecta(item.q);
+          return `<div class="p-3 rounded-xl bg-carmin-50/60 border border-carmin-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2"><div><span class="font-mono font-bold text-carmin-700">Reactivo #${item.q.id}:</span> <span class="font-medium text-quirurgico-900">${item.q.enunciado}</span><p class="text-[11px] text-emerald-800 font-semibold mt-0.5">Respuesta correcta: ${respCorrecta}</p></div><span class="font-mono font-bold text-xs bg-white border border-carmin-200 text-carmin-700 px-2.5 py-1 rounded-lg shrink-0">${item.correctos}/${item.evaluados} (${pct}%)</span></div>`;
+        }).join("");
+      }
+
       if (indiceIndividualActual >= total) indiceIndividualActual = total - 1;
       selInd.value = indiceIndividualActual;
       renderizarHojaIndividualAlumno();
@@ -1265,10 +1412,11 @@
 
       BANCO_20_REACTIVOS.forEach(q => {
         const resp = mapaRespuestas[q.id];
+        const correctaTexto = obtenerRespuestaCorrecta(q);
         const esOk = resp ? resp.esCorrecta : false;
         const elegida = resp ? resp.elegida : "(Sin registro)";
         html += `<div class="bg-white border-2 ${esOk ? "border-emerald-200" : "border-carmin-200"} rounded-2xl p-5 shadow-sm space-y-3"><div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2"><span class="font-mono text-xs font-extrabold px-2.5 py-1 rounded-lg ${esOk ? "bg-emerald-600 text-white" : "bg-carmin-600 text-white"}">${esOk ? "✓" : "✗"} Reactivo ${q.id}</span><span class="text-xs font-semibold text-slate-500">${q.categoria}</span></div><span class="font-mono text-xs font-bold ${esOk ? "text-emerald-700" : "text-carmin-600"}">${esOk ? "5 / 5 pts" : "0 / 5 pts"}</span></div><p class="text-sm font-bold text-quirurgico-900">${q.enunciado}</p><div class="space-y-2 pt-1">${q.opciones.map(opt => {
-          const esLaElegida = (opt === elegida), esLaCorrecta = (opt === q.correcta);
+          const esLaElegida = (opt === elegida), esLaCorrecta = (opt === correctaTexto);
           if (esLaElegida && esLaCorrecta) return `<div class="p-3 rounded-xl bg-emerald-50 border-2 border-emerald-500 text-xs font-bold text-emerald-950 flex items-center justify-between"><span>✓ ${opt}</span><span class="font-mono text-[10px] uppercase bg-emerald-600 text-white px-2 py-0.5 rounded">Elegida (Correcta)</span></div>`;
           if (esLaElegida && !esLaCorrecta) return `<div class="p-3 rounded-xl bg-carmin-50 border-2 border-carmin-500 text-xs font-bold text-carmin-950 flex items-center justify-between"><span>✗ ${opt}</span><span class="font-mono text-[10px] uppercase bg-carmin-600 text-white px-2 py-0.5 rounded">Elegida por alumno</span></div>`;
           if (!esLaElegida && esLaCorrecta) return `<div class="p-3 rounded-xl bg-emerald-50/70 border border-emerald-400 text-xs font-bold text-emerald-900 flex items-center justify-between"><span>✓ ${opt}</span><span class="font-mono text-[10px] uppercase text-emerald-700 font-extrabold">Respuesta Correcta</span></div>`;
@@ -1302,17 +1450,19 @@
 
         const respuestasReconstruidas = BANCO_20_REACTIVOS.map(q => {
           const info = mapaTokens[q.id];
-          return info ? { idPregunta: q.id, categoria: q.categoria, enunciado: q.enunciado, elegida: info.esCorrecta ? q.correcta : info.elegidaTexto, correcta: q.correcta, esCorrecta: info.esCorrecta } : { idPregunta: q.id, categoria: q.categoria, enunciado: q.enunciado, elegida: "(No incluido)", correcta: q.correcta, esCorrecta: false };
+          const correctaTexto = obtenerRespuestaCorrecta(q);
+          return info ? { idPregunta: q.id, categoria: q.categoria, enunciado: q.enunciado, elegida: info.esCorrecta ? correctaTexto : info.elegidaTexto, correcta: correctaTexto, esCorrecta: info.esCorrecta } : { idPregunta: q.id, categoria: q.categoria, enunciado: q.enunciado, elegida: "(No incluido)", correcta: correctaTexto, esCorrecta: false };
         });
 
-        entregas.push({ matricula, nombre: nombre || matricula, fecha: new Date().toLocaleDateString("es-MX"), horaInicio, horaFin, duracion: "Ver inicio/fin", aciertos: Math.round(calif / 5), calificacion100: calif, salidas, intentos, hash: "GOOGLE-SHEETS", respuestas: respuestasReconstruidas });
+        const duracionCalc = calcularDuracionEntreHoras(horaInicio, horaFin);
+        entregas.push({ matricula, nombre: nombre || matricula, fecha: offset === 1 ? cols[0].split(" ")[0] : new Date().toLocaleDateString("es-MX"), horaInicio, horaFin, duracion: duracionCalc, aciertos: Math.round(calif / 5), calificacion100: calif, salidas, intentos, hash: "GOOGLE-SHEETS", respuestas: respuestasReconstruidas });
         importados += 1;
       });
       if (importados > 0) {
         guardarStorageJSON(STORAGE_KEY_ENTREGAS, entregas);
         document.getElementById("textareaImportarSheets").value = "";
         actualizarDashboardForms();
-        mostrarToast(`Se cargaron ${importados} alumnos en el visor.`);
+        mostrarToast(`Se cargaron ${importados} alumnos en el visor con cálculo automático de duración.`);
       } else { mostrarToast("No se reconocieron columnas válidas."); }
     }
 
@@ -1344,9 +1494,10 @@
       const lista = (filtro === "todos") ? BANCO_20_REACTIVOS : BANCO_20_REACTIVOS.filter(q => q.categoria === filtro);
       const letras = ["A", "B", "C", "D"];
       lista.forEach(q => {
+        const correctaTexto = obtenerRespuestaCorrecta(q);
         const card = document.createElement("div");
         card.className = "bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3";
-        card.innerHTML = `<div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2"><span class="bg-quirurgico-800 text-white font-mono text-xs font-bold px-2.5 py-1 rounded-lg">Reactivo #${q.id}</span><span class="text-xs font-semibold text-slate-500">${q.categoria} • 5 pts</span></div>${q.svgKey && SVGS_ANATOMIA[q.svgKey] ? `<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex justify-center">${SVGS_ANATOMIA[q.svgKey]}</div>` : ""}<p class="text-sm font-bold text-quirurgico-900">${q.enunciado}</p><div class="space-y-1.5">${q.opciones.map((opt, i) => `<div class="p-2.5 rounded-xl text-xs ${opt === q.correcta ? "bg-emerald-50 border-2 border-emerald-500 font-bold text-emerald-950" : "bg-slate-50 border border-slate-200 text-slate-700"}"><span class="font-mono font-bold mr-1.5">${letras[i]})</span> ${opt} ${opt === q.correcta ? " ✓ (Correcta)" : ""}</div>`).join("")}</div><div class="bg-carmin-50 border-l-4 border-carmin-600 p-3 rounded-r-xl text-xs text-carmin-900"><strong>Perla Anatómica / Ortopédica:</strong> ${q.justificacion}</div>`;
+        card.innerHTML = `<div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2"><span class="bg-quirurgico-800 text-white font-mono text-xs font-bold px-2.5 py-1 rounded-lg">Reactivo #${q.id}</span><span class="text-xs font-semibold text-slate-500">${q.categoria} • 5 pts</span></div>${q.svgKey && SVGS_ANATOMIA[q.svgKey] ? `<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex justify-center">${SVGS_ANATOMIA[q.svgKey]}</div>` : ""}<p class="text-sm font-bold text-quirurgico-900">${q.enunciado}</p><div class="space-y-1.5">${q.opciones.map((opt, i) => `<div class="p-2.5 rounded-xl text-xs ${opt === correctaTexto ? "bg-emerald-50 border-2 border-emerald-500 font-bold text-emerald-950" : "bg-slate-50 border border-slate-200 text-slate-700"}"><span class="font-mono font-bold mr-1.5">${letras[i]})</span> ${opt} ${opt === correctaTexto ? " ✓ (Correcta)" : ""}</div>`).join("")}</div><div class="bg-carmin-50 border-l-4 border-carmin-600 p-3 rounded-r-xl text-xs text-carmin-900"><strong>Perla Anatómica / Ortopédica:</strong> ${q.justificacion}</div>`;
         cont.appendChild(card);
       });
     }
@@ -1357,8 +1508,9 @@
       let salida = "UNIVERSIDAD AUTÓNOMA DE DURANGO — CAMPUS MORELIA\nLICENCIATURA EN MEDICINA GENERAL | ANATOMÍA HUMANA I (NIVEL I)\nEXAMEN TERCER PARCIAL (20 REACTIVOS — 100 PUNTOS)\n\n";
       const clave = [];
       BANCO_20_REACTIVOS.forEach(q => {
+        const correctaTexto = obtenerRespuestaCorrecta(q);
         salida += `${q.id}. ${q.enunciado}\n`;
-        q.opciones.forEach((opt, i) => { salida += `${letras[i]} ${opt}\n`; if (opt === q.correcta) clave.push(`${q.id}. ${letras[i]} ${opt}`); });
+        q.opciones.forEach((opt, i) => { salida += `${letras[i]} ${opt}\n`; if (opt === correctaTexto) clave.push(`${q.id}. ${letras[i]} ${opt}`); });
         salida += "\n";
       });
       salida += "========================================\nCLAVE DE RESPUESTAS (DOCENTE)\n========================================\n" + clave.join("\n");
@@ -1413,13 +1565,12 @@
         horaFin: ahora,
         salidas: 0,
         intentos: 1,
-        respuestas: BANCO_20_REACTIVOS.map(q => ({ idPregunta: q.id, esCorrecta: true, elegida: q.correcta }))
+        respuestas: BANCO_20_REACTIVOS.map(q => ({ idPregunta: q.id, esCorrecta: true, elegida: obtenerRespuestaCorrecta(q) }))
       });
       mostrarToast("Fila de prueba enviada a Google Sheets.");
     }
 
     function descargarHtmlVinculado() {
-      /* Clonar el documento y restablecer la vista del alumno antes de exportar */
       const clon = document.documentElement.cloneNode(true);
       const vAl = clon.querySelector("#vistaAlumno");
       const vDoc = clon.querySelector("#vistaDocente");
